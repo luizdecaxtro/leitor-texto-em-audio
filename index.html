@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leitor de Textos</title>
-    <title>LojasDeCastro</title>
     <style>
         * {
             margin: 0;
@@ -191,17 +190,16 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📖 LojasdeCastro</h1>
-             <h2>📖 Leitor de Textos em Áudio</h2>
-             <p>Você pode digitar, colar ou carreggar um arquivo de texto para ouvir</p
-              <button class="back-to-site-btn" onclick="window.location.href='https://www.lojasdecastro.com.br'">← Voltar para LojasDeCastro</button>                                                                                     
-                                                                     
+            <h1>📖 LojasDeCastro</h1>
+            <h2>📖 Leitor de Textos</h2>
+            <p>Carregue um arquivo ou digite seu texto para ouvir</p>
         </div>
 
         <div class="controls">
             <div class="file-input-wrapper">
-                <label for="fileInput" class="file-label">📁 Carregar Arquivo de Texto</label>
-                <input type="file" id="fileInput" accept=".txt">
+                <label for="fileInput" class="file-label">📁 Carregar Arquivo (TXT, PDF, DOCX)</label>
+                <button class="back-to-site-btn" onclick="window.location.href='https://www.lojasdecastro.com.br'">← Voltar para LojasDeCastro</button> 
+                <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx">
             </div>
 
             <textarea class="textarea-input" id="textInput" placeholder="Ou digite/cole seu texto aqui..."></textarea>
@@ -237,7 +235,12 @@
         <div class="status" id="status">Pronto para ler</div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script>
+        // Configurar PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
         let synth = window.speechSynthesis;
         let utterance = null;
         let isPaused = false;
@@ -331,14 +334,71 @@
         document.getElementById('fileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let text = e.target.result;
-                    document.getElementById('textInput').value = text;
-                    document.getElementById('textDisplay').textContent = text;
-                    updateStatus(`Arquivo "${file.name}" carregado com sucesso!`);
-                };
-                reader.readAsText(file);
+                const fileName = file.name.toLowerCase();
+                
+                if (fileName.endsWith('.txt')) {
+                    // Ler arquivo TXT
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        let text = e.target.result;
+                        document.getElementById('textInput').value = text;
+                        document.getElementById('textDisplay').textContent = text;
+                        updateStatus(`Arquivo "${file.name}" carregado com sucesso!`);
+                    };
+                    reader.readAsText(file);
+                }
+                else if (fileName.endsWith('.pdf')) {
+                    // Ler arquivo PDF
+                    updateStatus('📄 Processando PDF...');
+                    let reader = new FileReader();
+                    reader.onload = async function(e) {
+                        try {
+                            const typedarray = new Uint8Array(e.target.result);
+                            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                            let fullText = '';
+                            
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textContent = await page.getTextContent();
+                                const pageText = textContent.items.map(item => item.str).join(' ');
+                                fullText += pageText + '\n\n';
+                            }
+                            
+                            document.getElementById('textInput').value = fullText;
+                            document.getElementById('textDisplay').textContent = fullText;
+                            updateStatus(`✅ PDF "${file.name}" carregado com sucesso! (${pdf.numPages} páginas)`);
+                        } catch (error) {
+                            updateStatus('❌ Erro ao ler PDF: ' + error.message);
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+                else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+                    // Ler arquivo Word
+                    updateStatus('📝 Processando documento Word...');
+                    let reader = new FileReader();
+                    reader.onload = async function(e) {
+                        try {
+                            const arrayBuffer = e.target.result;
+                            const result = await mammoth.extractRawText({arrayBuffer: arrayBuffer});
+                            const text = result.value;
+                            
+                            document.getElementById('textInput').value = text;
+                            document.getElementById('textDisplay').textContent = text;
+                            updateStatus(`✅ Documento "${file.name}" carregado com sucesso!`);
+                            
+                            if (result.messages.length > 0) {
+                                console.log('Avisos:', result.messages);
+                            }
+                        } catch (error) {
+                            updateStatus('❌ Erro ao ler documento Word: ' + error.message);
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+                else {
+                    updateStatus('❌ Formato de arquivo não suportado. Use TXT, PDF ou DOCX.');
+                }
             }
         });
 
@@ -424,9 +484,4 @@
         }
     </script>
 </body>
-
-</html>
-
-
-
-
+</html>                                                                                 
