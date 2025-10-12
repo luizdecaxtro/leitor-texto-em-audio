@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitor de Textos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .file-input-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .file-label:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn-play {
+            background: #28a745;
+        }
+
+        .btn-play:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-pause {
+            background: #ffc107;
+        }
+
+        .btn-pause:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .btn-stop {
+            background: #dc3545;
+        }
+
+        .btn-stop:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .settings {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .setting-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .setting-group select,
+        .setting-group input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .text-display {
+            padding: 30px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            line-height: 1.8;
+            font-size: 18px;
+            color: #212529;
+        }
+
+        .text-display:empty::before {
+            content: "Carregue um arquivo de texto ou cole seu texto aqui...";
+            color: #adb5bd;
+            font-style: italic;
+        }
+
+        .textarea-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 16px;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .status {
+            padding: 15px 30px;
+            background: #e9ecef;
+            color: #495057;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .value-display {
+            display: inline-block;
+            margin-left: 10px;
+            color: #667eea;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Leitor de Textos</h1>
+            <p>Carregue um arquivo ou digite seu texto para ouvir</p>
+        </div>
+
+        <div class="controls">
+            <div class="file-input-wrapper">
+                <label for="fileInput" class="file-label">📁 Carregar Arquivo de Texto</label>
+                <input type="file" id="fileInput" accept=".txt">
+            </div>
+
+            <textarea class="textarea-input" id="textInput" placeholder="Ou digite/cole seu texto aqui..."></textarea>
+
+            <div class="voice-controls">
+                <button class="btn-play" onclick="playText()">▶️ Reproduzir</button>
+                <button class="btn-pause" onclick="pauseText()">⏸️ Pausar</button>
+                <button class="btn-stop" onclick="stopText()">⏹️ Parar</button>
+            </div>
+
+            <div class="settings">
+                <div class="setting-group">
+                    <label for="voiceSelect">Voz:</label>
+                    <select id="voiceSelect"></select>
+                </div>
+                <div class="setting-group">
+                    <label for="rateSlider">Velocidade: <span class="value-display" id="rateValue">1.0x</span></label>
+                    <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1">
+                </div>
+                <div class="setting-group">
+                    <label for="pitchSlider">Tom: <span class="value-display" id="pitchValue">1.0</span></label>
+                    <input type="range" id="pitchSlider" min="0.5" max="2" step="0.1" value="1">
+                </div>
+                <div class="setting-group">
+                    <label for="volumeSlider">Volume: <span class="value-display" id="volumeValue">100%</span></label>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
+        <div class="text-display" id="textDisplay"></div>
+
+        <div class="status" id="status">Pronto para ler</div>
+    </div>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let isPaused = false;
+        let voices = [];
+
+        // Carregar vozes disponíveis
+        function loadVoices() {
+            voices = synth.getVoices();
+            let voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+            
+            // Priorizar vozes em português brasileiro, depois português geral
+            let ptBRVoices = voices.filter(v => v.lang === 'pt-BR');
+            let ptVoices = voices.filter(v => v.lang.startsWith('pt') && v.lang !== 'pt-BR');
+            let otherVoices = voices.filter(v => !v.lang.startsWith('pt'));
+            
+            // Função para identificar vozes de melhor qualidade
+            function getVoiceQuality(voice) {
+                const name = voice.name.toLowerCase();
+                if (name.includes('neural') || name.includes('premium') || 
+                    name.includes('enhanced') || name.includes('natural')) {
+                    return '🌟 ';
+                }
+                if (name.includes('google') || name.includes('microsoft')) {
+                    return '✨ ';
+                }
+                return '';
+            }
+            
+            // Ordenar vozes por qualidade
+            function sortByQuality(voiceList) {
+                return voiceList.sort((a, b) => {
+                    const qualityA = getVoiceQuality(a);
+                    const qualityB = getVoiceQuality(b);
+                    if (qualityA && !qualityB) return -1;
+                    if (!qualityA && qualityB) return 1;
+                    return a.name.localeCompare(b.name);
+                });
+            }
+            
+            if (ptBRVoices.length > 0) {
+                let optgroup = document.createElement('optgroup');
+                optgroup.label = 'Português (Brasil) - Recomendado';
+                sortByQuality(ptBRVoices).forEach(voice => {
+                    let option = document.createElement('option');
+                    option.value = voices.indexOf(voice);
+                    option.textContent = `${getVoiceQuality(voice)}${voice.name}`;
+                    optgroup.appendChild(option);
+                });
+                voiceSelect.appendChild(optgroup);
+            }
+            
+            if (ptVoices.length > 0) {
+                let optgroup = document.createElement('optgroup');
+                optgroup.label = 'Português';
+                sortByQuality(ptVoices).forEach(voice => {
+                    let option = document.createElement('option');
+                    option.value = voices.indexOf(voice);
+                    option.textContent = `${getVoiceQuality(voice)}${voice.name} (${voice.lang})`;
+                    optgroup.appendChild(option);
+                });
+                voiceSelect.appendChild(optgroup);
+            }
+            
+            if (otherVoices.length > 0) {
+                let optgroup = document.createElement('optgroup');
+                optgroup.label = 'Outros idiomas';
+                sortByQuality(otherVoices).forEach(voice => {
+                    let option = document.createElement('option');
+                    option.value = voices.indexOf(voice);
+                    option.textContent = `${getVoiceQuality(voice)}${voice.name} (${voice.lang})`;
+                    optgroup.appendChild(option);
+                });
+                voiceSelect.appendChild(optgroup);
+            }
+            
+            // Selecionar automaticamente a melhor voz brasileira
+            if (ptBRVoices.length > 0) {
+                const bestVoice = sortByQuality(ptBRVoices)[0];
+                voiceSelect.value = voices.indexOf(bestVoice);
+            }
+        }
+
+        // Esperar vozes carregarem
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+        loadVoices();
+
+        // Carregar arquivo
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let text = e.target.result;
+                    document.getElementById('textInput').value = text;
+                    document.getElementById('textDisplay').textContent = text;
+                    updateStatus(`Arquivo "${file.name}" carregado com sucesso!`);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Atualizar display de texto ao digitar
+        document.getElementById('textInput').addEventListener('input', function() {
+            document.getElementById('textDisplay').textContent = this.value;
+        });
+
+        // Atualizar valores dos sliders
+        document.getElementById('rateSlider').addEventListener('input', function() {
+            document.getElementById('rateValue').textContent = this.value + 'x';
+        });
+
+        document.getElementById('pitchSlider').addEventListener('input', function() {
+            document.getElementById('pitchValue').textContent = this.value;
+        });
+
+        document.getElementById('volumeSlider').addEventListener('input', function() {
+            document.getElementById('volumeValue').textContent = Math.round(this.value * 100) + '%';
+        });
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function playText() {
+            let text = document.getElementById('textInput').value;
+            
+            if (!text) {
+                updateStatus('❌ Por favor, insira algum texto primeiro!');
+                return;
+            }
+
+            if (isPaused) {
+                synth.resume();
+                isPaused = false;
+                updateStatus('▶️ Reproduzindo...');
+                return;
+            }
+
+            stopText();
+
+            // Adicionar pausas naturais entre parágrafos
+            text = text.replace(/\n\n+/g, '.\n\n').replace(/\n/g, '. ');
+
+            utterance = new SpeechSynthesisUtterance(text);
+            
+            let voiceIndex = document.getElementById('voiceSelect').value;
+            utterance.voice = voices[voiceIndex] || voices[0];
+            utterance.rate = parseFloat(document.getElementById('rateSlider').value);
+            utterance.pitch = parseFloat(document.getElementById('pitchSlider').value);
+            utterance.volume = parseFloat(document.getElementById('volumeSlider').value);
+
+            utterance.onstart = function() {
+                updateStatus('▶️ Reproduzindo...');
+            };
+
+            utterance.onend = function() {
+                updateStatus('✅ Leitura concluída!');
+            };
+
+            utterance.onerror = function(e) {
+                updateStatus('❌ Erro ao reproduzir: ' + e.error);
+            };
+
+            synth.speak(utterance);
+        }
+
+        function pauseText() {
+            if (synth.speaking && !isPaused) {
+                synth.pause();
+                isPaused = true;
+                updateStatus('⏸️ Pausado');
+            }
+        }
+
+        function stopText() {
+            if (synth.speaking) {
+                synth.cancel();
+                isPaused = false;
+                updateStatus('⏹️ Parado');
+            }
+        }
+    </script>
+</body>
+</html>
