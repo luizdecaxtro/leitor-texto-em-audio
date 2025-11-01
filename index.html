@@ -62,26 +62,10 @@
             cursor: pointer;
             transition: all 0.3s;
             font-weight: bold;
-            margin-right: 10px;
         }
 
         .file-label:hover {
             background: #764ba2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .back-to-site-btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            color: white;
-        }
-
-        .back-to-site-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
@@ -129,40 +113,6 @@
         .btn-stop:hover {
             background: #c82333;
             transform: translateY(-2px);
-        }
-
-        .btn-record {
-            background: #17a2b8;
-        }
-
-        .btn-record:hover {
-            background: #138496;
-            transform: translateY(-2px);
-        }
-
-        .btn-record.recording {
-            background: #dc3545;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .btn-download {
-            background: #6c757d;
-        }
-
-        .btn-download:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        .btn-download:disabled {
-            background: #adb5bd;
-            cursor: not-allowed;
-            transform: none;
         }
 
         .settings {
@@ -235,55 +185,6 @@
             color: #667eea;
             font-weight: bold;
         }
-
-        .recording-info {
-            background: #d1ecf1;
-            border: 2px solid #bee5eb;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            color: #0c5460;
-            display: none;
-        }
-
-        .recording-info.active {
-            display: block;
-        }
-
-        .audio-preview {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            display: none;
-        }
-
-        .audio-preview.active {
-            display: block;
-        }
-
-        .audio-preview audio {
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .info-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            color: #856404;
-        }
-
-        .warning-box {
-            background: #f8d7da;
-            border: 2px solid #f5c6cb;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            color: #721c24;
-        }
     </style>
 </head>
 <body>
@@ -295,60 +196,25 @@
             <p>Carregue um arquivo ou digite seu texto para ouvir</p>
             <p>Você também pode escolher o narrador com voz masculina ou feminina</p>
             <p>Escolha abaixo, no campo 'voz': a voz, a velocidade e o tom</p>
-            <p>🎙️ <strong>NOVO:</strong> Grave a leitura em arquivo de áudio!</p>
+              
         </div>
 
         <div class="controls">
             <div class="file-input-wrapper">            
                 <label for="fileInput" class="file-label">📁 Carregar Arquivo (TXT, PDF, DOCX)</label>
-                <button class="back-to-site-btn" 
+                 <button class="back-to-site-btn" 
                         style="background-color: orange;" 
-                        onclick="window.location.href='https://www.lojasdecastro.com.br'">
-                    ← Voltar para LojasDeCastro
-                </button>                             
+                         onclick="window.location.href='https://www.lojasdecastro.com.br'">
+                         ← Voltar para LojasDeCastro
+                 </button>                             
                 <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx">
             </div>
-            <textarea class="textarea-input" id="textInput" placeholder="Ou digite/cole seu texto aqui..."></textarea>
+           <textarea class="textarea-input" id="textInput" placeholder="Ou digite/cole seu texto aqui..."></textarea>
 
             <div class="voice-controls">
                 <button class="btn-play" onclick="playText()">▶️ Reproduzir</button>
                 <button class="btn-pause" onclick="pauseText()">⏸️ Pausar</button>
                 <button class="btn-stop" onclick="stopText()">⏹️ Parar</button>
-                <button class="btn-record" id="recordBtn" onclick="startRecording()">🎙️ Gravar em Áudio</button>
-                <button class="btn-download" id="downloadBtn" onclick="downloadAudio()" disabled>💾 Baixar Áudio</button>
-            </div>
-
-            <div class="recording-info" id="recordingInfo">
-                <strong>🔴 Gravando...</strong> A leitura está sendo gravada. Aguarde o término da leitura.
-            </div>
-
-            <div class="warning-box">
-                <strong>⚠️ IMPORTANTE:</strong> A gravação de áudio tem limitações no navegador:<br>
-                • <strong>Chrome/Edge:</strong> Grava em formato WebM (pode precisar de conversão)<br>
-                • <strong>Safari:</strong> Pode não funcionar corretamente<br>
-                • <strong>Firefox:</strong> Grava em formato OGG<br><br>
-                <strong>💡 Solução:</strong> Se o arquivo não abrir, use conversores online gratuitos:<br>
-                • <a href="https://cloudconvert.com" target="_blank">cloudconvert.com</a> (WebM → MP3)<br>
-                • <a href="https://convertio.co" target="_blank">convertio.co</a> (WebM → MP3/WAV)<br>
-                • Ou use o VLC Media Player para reproduzir arquivos WebM
-            </div>
-
-            <div class="info-box">
-                <strong>💡 Como gravar:</strong><br>
-                1. Digite ou carregue seu texto<br>
-                2. Configure a voz, velocidade e tom desejados<br>
-                3. Clique em "Gravar em Áudio"<br>
-                4. Aguarde a leitura completa<br>
-                5. Baixe o arquivo e converta se necessário
-            </div>
-
-            <div class="audio-preview" id="audioPreview">
-                <strong>🎵 Pré-visualização do Áudio Gravado:</strong>
-                <audio controls id="audioPlayer"></audio>
-                <p style="margin-top: 10px; font-size: 14px; color: #666;">
-                    Formato: <span id="audioFormat">-</span> | 
-                    Se não reproduzir, baixe e converta online
-                </p>
             </div>
 
             <div class="settings">
@@ -379,26 +245,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script>
+        // Configurar PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
         let synth = window.speechSynthesis;
         let utterance = null;
         let isPaused = false;
         let voices = [];
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let audioBlob = null;
-        let isRecording = false;
 
+        // Carregar vozes disponíveis
         function loadVoices() {
             voices = synth.getVoices();
             let voiceSelect = document.getElementById('voiceSelect');
             voiceSelect.innerHTML = '';
             
+            // Priorizar vozes em português brasileiro, depois português geral
             let ptBRVoices = voices.filter(v => v.lang === 'pt-BR');
             let ptVoices = voices.filter(v => v.lang.startsWith('pt') && v.lang !== 'pt-BR');
             let otherVoices = voices.filter(v => !v.lang.startsWith('pt'));
             
+            // Função para identificar vozes de melhor qualidade
             function getVoiceQuality(voice) {
                 const name = voice.name.toLowerCase();
                 if (name.includes('neural') || name.includes('premium') || 
@@ -411,6 +277,7 @@
                 return '';
             }
             
+            // Ordenar vozes por qualidade
             function sortByQuality(voiceList) {
                 return voiceList.sort((a, b) => {
                     const qualityA = getVoiceQuality(a);
@@ -457,23 +324,27 @@
                 voiceSelect.appendChild(optgroup);
             }
             
+            // Selecionar automaticamente a melhor voz brasileira
             if (ptBRVoices.length > 0) {
                 const bestVoice = sortByQuality(ptBRVoices)[0];
                 voiceSelect.value = voices.indexOf(bestVoice);
             }
         }
 
+        // Esperar vozes carregarem
         if (synth.onvoiceschanged !== undefined) {
             synth.onvoiceschanged = loadVoices;
         }
         loadVoices();
 
+        // Carregar arquivo
         document.getElementById('fileInput').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if (file) {
                 const fileName = file.name.toLowerCase();
                 
                 if (fileName.endsWith('.txt')) {
+                    // Ler arquivo TXT
                     let reader = new FileReader();
                     reader.onload = function(e) {
                         let text = e.target.result;
@@ -484,6 +355,7 @@
                     reader.readAsText(file);
                 }
                 else if (fileName.endsWith('.pdf')) {
+                    // Ler arquivo PDF
                     updateStatus('📄 Processando PDF...');
                     let reader = new FileReader();
                     reader.onload = async function(e) {
@@ -509,6 +381,7 @@
                     reader.readAsArrayBuffer(file);
                 }
                 else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+                    // Ler arquivo Word
                     updateStatus('📝 Processando documento Word...');
                     let reader = new FileReader();
                     reader.onload = async function(e) {
@@ -536,10 +409,12 @@
             }
         });
 
+        // Atualizar display de texto ao digitar
         document.getElementById('textInput').addEventListener('input', function() {
             document.getElementById('textDisplay').textContent = this.value;
         });
 
+        // Atualizar valores dos sliders
         document.getElementById('rateSlider').addEventListener('input', function() {
             document.getElementById('rateValue').textContent = this.value + 'x';
         });
@@ -554,139 +429,6 @@
 
         function updateStatus(message) {
             document.getElementById('status').textContent = message;
-        }
-
-        async function startRecording() {
-            let text = document.getElementById('textInput').value;
-            
-            if (!text) {
-                updateStatus('❌ Por favor, insira algum texto primeiro!');
-                return;
-            }
-
-            if (isRecording) {
-                updateStatus('⚠️ Uma gravação já está em andamento!');
-                return;
-            }
-
-            try {
-                // Solicitar permissão do microfone (necessário para MediaRecorder)
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                
-                // Parar o stream do microfone imediatamente
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Criar um AudioContext e destino
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const destination = audioContext.createMediaStreamDestination();
-                
-                // Configurar MediaRecorder com melhor formato disponível
-                let mimeType = 'audio/webm';
-                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-                    mimeType = 'audio/webm;codecs=opus';
-                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-                    mimeType = 'audio/ogg;codecs=opus';
-                }
-                
-                mediaRecorder = new MediaRecorder(destination.stream, { 
-                    mimeType: mimeType,
-                    audioBitsPerSecond: 128000
-                });
-                
-                audioChunks = [];
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
-                
-                mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { type: mimeType });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    document.getElementById('audioPlayer').src = audioUrl;
-                    document.getElementById('audioFormat').textContent = mimeType;
-                    document.getElementById('audioPreview').classList.add('active');
-                    document.getElementById('downloadBtn').disabled = false;
-                    document.getElementById('recordingInfo').classList.remove('active');
-                    document.getElementById('recordBtn').classList.remove('recording');
-                    isRecording = false;
-                    audioContext.close();
-                    updateStatus('✅ Gravação concluída! Baixe o arquivo e converta se necessário.');
-                };
-                
-                // Iniciar gravação
-                mediaRecorder.start();
-                isRecording = true;
-                document.getElementById('recordingInfo').classList.add('active');
-                document.getElementById('recordBtn').classList.add('recording');
-                updateStatus('🔴 Gravando... Aguarde o término da leitura.');
-                
-                // Preparar e iniciar a fala
-                text = text.replace(/\n\n+/g, '.\n\n').replace(/\n/g, '. ');
-                utterance = new SpeechSynthesisUtterance(text);
-                
-                let voiceIndex = document.getElementById('voiceSelect').value;
-                utterance.voice = voices[voiceIndex] || voices[0];
-                utterance.rate = parseFloat(document.getElementById('rateSlider').value);
-                utterance.pitch = parseFloat(document.getElementById('pitchSlider').value);
-                utterance.volume = parseFloat(document.getElementById('volumeSlider').value);
-                
-                utterance.onend = function() {
-                    setTimeout(() => {
-                        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                            mediaRecorder.stop();
-                        }
-                    }, 500);
-                };
-                
-                utterance.onerror = function(e) {
-                    updateStatus('❌ Erro ao reproduzir: ' + e.error);
-                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                        mediaRecorder.stop();
-                    }
-                    isRecording = false;
-                    document.getElementById('recordBtn').classList.remove('recording');
-                };
-                
-                synth.speak(utterance);
-                
-            } catch (error) {
-                updateStatus('❌ Erro ao iniciar gravação: ' + error.message);
-                console.error('Erro detalhado:', error);
-                isRecording = false;
-                document.getElementById('recordBtn').classList.remove('recording');
-                
-                if (error.name === 'NotAllowedError') {
-                    alert('Permissão de microfone negada. Por favor, permita o acesso ao microfone para gravar.');
-                }
-            }
-        }
-
-        function downloadAudio() {
-            if (audioBlob) {
-                const url = URL.createObjectURL(audioBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                
-                let extension = '.webm';
-                const mimeType = audioBlob.type;
-                if (mimeType.includes('ogg')) {
-                    extension = '.ogg';
-                } else if (mimeType.includes('mp4')) {
-                    extension = '.mp4';
-                } else if (mimeType.includes('wav')) {
-                    extension = '.wav';
-                }
-                
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-                a.download = `leitura_${timestamp}${extension}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                updateStatus(`💾 Áudio baixado! Se não abrir, converta em cloudconvert.com`);
-            }
         }
 
         function playText() {
@@ -705,6 +447,8 @@
             }
 
             stopText();
+
+            // Adicionar pausas naturais entre parágrafos
             text = text.replace(/\n\n+/g, '.\n\n').replace(/\n/g, '. ');
 
             utterance = new SpeechSynthesisUtterance(text);
@@ -747,6 +491,4 @@
         }
     </script>
 </body>
-</html>
-
-
+</html>       
