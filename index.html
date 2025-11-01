@@ -266,6 +266,15 @@
             width: 100%;
             margin-top: 10px;
         }
+
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
@@ -296,12 +305,16 @@
                 <button class="btn-play" onclick="playText()">▶️ Reproduzir</button>
                 <button class="btn-pause" onclick="pauseText()">⏸️ Pausar</button>
                 <button class="btn-stop" onclick="stopText()">⏹️ Parar</button>
-                <button class="btn-record" id="recordBtn" onclick="toggleRecording()">🎙️ Gravar Áudio</button>
+                <button class="btn-record" id="recordBtn" onclick="recordAndPlay()">🎙️ Gravar em Áudio</button>
                 <button class="btn-download" id="downloadBtn" onclick="downloadAudio()" disabled>💾 Baixar Áudio</button>
             </div>
 
             <div class="recording-info" id="recordingInfo">
-                <strong>🔴 Gravando...</strong> A leitura está sendo gravada. Clique em "Parar Gravação" quando terminar.
+                <strong>🔴 Gravando...</strong> A leitura está sendo gravada. Aguarde o término da leitura.
+            </div>
+
+            <div class="info-box">
+                <strong>💡 Como gravar:</strong> Clique em "Gravar em Áudio" para criar um arquivo de áudio da leitura. O sistema irá ler o texto e gravar simultaneamente. Ao final, você poderá baixar o arquivo MP3.
             </div>
 
             <div class="audio-preview" id="audioPreview">
@@ -343,10 +356,12 @@
         let utterance = null;
         let isPaused = false;
         let voices = [];
+        let audioContext = null;
         let mediaRecorder = null;
         let audioChunks = [];
         let audioBlob = null;
         let isRecording = false;
+        let destination = null;
 
         function loadVoices() {
             voices = synth.getVoices();
@@ -514,55 +529,80 @@
             document.getElementById('status').textContent = message;
         }
 
-        async function startRecording() {
+        async function recordAndPlay() {
+            let text = document.getElementById('textInput').value;
+            
+            if (!text) {
+                updateStatus('❌ Por favor, insira algum texto primeiro!');
+                return;
+            }
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                // Criar AudioContext
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                destination = audioContext.createMediaStreamDestination();
+                
+                // Criar MediaRecorder
+                mediaRecorder = new MediaRecorder(destination.stream);
                 audioChunks = [];
-
+                
                 mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
                 };
-
+                
                 mediaRecorder.onstop = () => {
                     audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const audioUrl = URL.createObjectURL(audioBlob);
                     document.getElementById('audioPlayer').src = audioUrl;
                     document.getElementById('audioPreview').classList.add('active');
                     document.getElementById('downloadBtn').disabled = false;
-                    
-                    stream.getTracks().forEach(track => track.stop());
+                    document.getElementById('recordingInfo').classList.remove('active');
+                    updateStatus('✅ Gravação concluída! Clique em "Baixar Áudio" para salvar.');
                 };
-
+                
+                // Iniciar gravação
                 mediaRecorder.start();
                 isRecording = true;
-                document.getElementById('recordBtn').classList.add('recording');
-                document.getElementById('recordBtn').textContent = '⏹️ Parar Gravação';
                 document.getElementById('recordingInfo').classList.add('active');
-                updateStatus('🔴 Gravando áudio...');
+                updateStatus('🔴 Gravando...');
+                
+                // Preparar texto
+                text = text.replace(/\n\n+/g, '.\n\n').replace(/\n/g, '. ');
+                
+                // Criar utterance
+                utterance = new SpeechSynthesisUtterance(text);
+                let voiceIndex = document.getElementById('voiceSelect').value;
+                utterance.voice = voices[voiceIndex] || voices[0];
+                utterance.rate = parseFloat(document.getElementById('rateSlider').value);
+                utterance.pitch = parseFloat(document.getElementById('pitchSlider').value);
+                utterance.volume = parseFloat(document.getElementById('volumeSlider').value);
+                
+                utterance.onend = function() {
+                    // Parar gravação após um pequeno delay
+                    setTimeout(() => {
+                        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                            mediaRecorder.stop();
+                        }
+                        isRecording = false;
+                    }, 500);
+                };
+                
+                utterance.onerror = function(e) {
+                    updateStatus('❌ Erro ao reproduzir: ' + e.error);
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                    isRecording = false;
+                };
+                
+                // Iniciar reprodução
+                synth.speak(utterance);
+                
             } catch (error) {
-                updateStatus('❌ Erro ao acessar microfone: ' + error.message);
-                console.error('Erro ao gravar:', error);
-            }
-        }
-
-        function stopRecording() {
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-                isRecording = false;
-                document.getElementById('recordBtn').classList.remove('recording');
-                document.getElementById('recordBtn').textContent = '🎙️ Gravar Áudio';
-                document.getElementById('recordingInfo').classList.remove('active');
-                updateStatus('✅ Gravação concluída! Clique em "Baixar Áudio" para salvar.');
-            }
-        }
-
-        function toggleRecording() {
-            if (isRecording) {
-                stopRecording();
-            } else {
-                startRecording();
-                playText();
+                updateStatus('❌ Erro ao iniciar gravação: ' + error.message);
+                console.error('Erro:', error);
             }
         }
 
@@ -571,7 +611,7 @@
                 const url = URL.createObjectURL(audioBlob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `leitura_texto_${new Date().getTime()}.webm`;
+                a.download = `leitura_${new Date().getTime()}.webm`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -596,7 +636,6 @@
             }
 
             stopText();
-
             text = text.replace(/\n\n+/g, '.\n\n').replace(/\n/g, '. ');
 
             utterance = new SpeechSynthesisUtterance(text);
@@ -612,17 +651,11 @@
             };
 
             utterance.onend = function() {
-                if (isRecording) {
-                    stopRecording();
-                }
                 updateStatus('✅ Leitura concluída!');
             };
 
             utterance.onerror = function(e) {
                 updateStatus('❌ Erro ao reproduzir: ' + e.error);
-                if (isRecording) {
-                    stopRecording();
-                }
             };
 
             synth.speak(utterance);
@@ -646,7 +679,6 @@
     </script>
 </body>
 </html>
-                                                                          
 
 
 
