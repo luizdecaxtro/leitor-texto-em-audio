@@ -314,7 +314,8 @@
             </div>
 
             <div class="info-box">
-                <strong>💡 Como gravar:</strong> Clique em "Gravar em Áudio" para criar um arquivo de áudio da leitura. O sistema irá ler o texto e gravar simultaneamente. Ao final, você poderá baixar o arquivo MP3.
+                <strong>💡 Como gravar:</strong> Clique em "Gravar em Áudio" para criar um arquivo de áudio da leitura. O sistema irá ler o texto e gravar simultaneamente. Ao final, você poderá baixar o arquivo de áudio.<br>
+                <strong>⚠️ Importante:</strong> A gravação funciona melhor no Google Chrome. Se o arquivo não abrir, tente usar o VLC Media Player ou converter o arquivo online em sites como <a href="https://convertio.co" target="_blank">convertio.co</a> ou <a href="https://cloudconvert.com" target="_blank">cloudconvert.com</a>.
             </div>
 
             <div class="audio-preview" id="audioPreview">
@@ -542,8 +543,22 @@
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 destination = audioContext.createMediaStreamDestination();
                 
+                // Tentar diferentes formatos de áudio para melhor compatibilidade
+                let options;
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    options = { mimeType: 'audio/webm;codecs=opus' };
+                } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                    options = { mimeType: 'audio/webm' };
+                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    options = { mimeType: 'audio/ogg;codecs=opus' };
+                } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    options = { mimeType: 'audio/mp4' };
+                } else {
+                    options = {};
+                }
+                
                 // Criar MediaRecorder
-                mediaRecorder = new MediaRecorder(destination.stream);
+                mediaRecorder = new MediaRecorder(destination.stream, options);
                 audioChunks = [];
                 
                 mediaRecorder.ondataavailable = (event) => {
@@ -553,7 +568,9 @@
                 };
                 
                 mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    // Tentar diferentes formatos para melhor compatibilidade
+                    const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                    audioBlob = new Blob(audioChunks, { type: mimeType });
                     const audioUrl = URL.createObjectURL(audioBlob);
                     document.getElementById('audioPlayer').src = audioUrl;
                     document.getElementById('audioPreview').classList.add('active');
@@ -611,12 +628,24 @@
                 const url = URL.createObjectURL(audioBlob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `leitura_${new Date().getTime()}.webm`;
+                
+                // Determinar extensão baseada no tipo MIME
+                let extension = '.webm';
+                const mimeType = audioBlob.type;
+                if (mimeType.includes('ogg')) {
+                    extension = '.ogg';
+                } else if (mimeType.includes('mp4')) {
+                    extension = '.mp4';
+                } else if (mimeType.includes('wav')) {
+                    extension = '.wav';
+                }
+                
+                a.download = `leitura_${new Date().getTime()}${extension}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                updateStatus('💾 Áudio baixado com sucesso!');
+                updateStatus(`💾 Áudio baixado com sucesso! Formato: ${extension}`);
             }
         }
 
@@ -679,10 +708,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
